@@ -35,3 +35,19 @@ from router import DocumentRouter
 user = User(DocumentRouter("论文.pdf"), role="学术研究助理", context="我关注实证结果")
 print(user.ask("论文的主要实证结论是什么？"))
 ```
+
+## FastAPI 问答接口
+
+沿用上面的 `.env` 配置，在项目根目录启动服务。接口默认读取 `md_lines.json`，可在 `http://127.0.0.1:8000/docs` 调试。
+
+```powershell
+uv run fastapi dev backend/main.py
+```
+
+| 接口 | 请求体 | 返回值 |
+| --- | --- | --- |
+| `POST /sessions` | `{}`，可选 `role` 和 `context` | `session_id` |
+| `POST /sessions/{session_id}/questions` | `{"question":"论文的主要结论是什么？"}` | `question`、`answer` |
+| `GET /sessions/{session_id}/history` | 无 | `session_id`、按顺序排列的 `history` |
+
+连续提问时复用同一个 `session_id`。每个会话的历史独立保存在服务进程内存中，服务重启后清空。需要保留会话时使用单个 Uvicorn worker。
